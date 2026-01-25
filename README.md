@@ -79,6 +79,26 @@ GitHub Actions runs on push to `main` and on pull requests:
 
 See [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
+## AI PR Summary
+
+Automatically posts an AI-generated summary comment on pull requests, including:
+
+- **Summary** — bullet points of key changes
+- **Risk assessment** — Low/Medium/High with reasons
+- **Suggested checks** — tests or manual verification based on changes
+- **Grouped file list** — files organized by area (API, tests, config, etc.)
+
+**Required Secret:** Add `OPENAI_API_KEY` to your repository secrets (Settings → Secrets → Actions).
+
+If the secret is not configured, the workflow skips gracefully with a notice.
+
+Security features:
+- Potential secrets are redacted before sending to OpenAI
+- Large diffs are truncated to prevent excessive API costs
+- Minimal permissions (contents read, pull-requests write)
+
+See [`.github/workflows/ai_pr_summary.yml`](.github/workflows/ai_pr_summary.yml).
+
 ## PR Title Convention
 
 This repository enforces [Conventional Commits](https://www.conventionalcommits.org/) for PR titles.
