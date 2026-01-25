@@ -1,0 +1,76 @@
+# CI workflow for ai-cicd-demo
+# Runs the same checks as local development (make lint, make test)
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Minimal permissions - only read access to checkout code
+permissions:
+  contents: read
+
+jobs:
+  # Validate PR title follows Conventional Commits format
+  pr-title:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # Conventional Commits regex
+          # Format: type(scope)?: description
+          # Types: feat, fix, docs, chore, refactor, test, perf, ci, build
+          pattern='^(feat|fix|docs|chore|refactor|test|perf|ci|build)(\([a-zA-Z0-9_-]+\))?: .+'
+          
+          if [[ ! "$PR_TITLE" =~ $pattern ]]; then
+            echo "::error::PR title does not follow Conventional Commits format"
+            echo ""
+            echo "Expected format: type(scope)?: description"
+            echo ""
+            echo "Allowed types: feat, fix, docs, chore, refactor, test, perf, ci, build"
+            echo ""
+            echo "Examples:"
+            echo "  feat: add user profile endpoint"
+            echo "  fix(auth): handle missing token"
+            echo "  docs: update README"
+            echo "  chore(deps): bump dependencies"
+            exit 1
+          fi
+          
+          echo "PR title is valid: $PR_TITLE"
+
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@v4
+
+      # Set up Python 3.11 (matches pyproject.toml target-version)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Install uv package manager with caching enabled
+      # Caches ~/.cache/uv keyed by uv.lock hash automatically
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      # Install project dependencies using Makefile (mirrors local dev)
+      - name: Install dependencies
+        run: make install
+
+      # Run linting: ruff check + mypy
+      - name: Lint
+        run: make lint
+
+      # Run tests: pytest
+      - name: Test
+        run: make test
