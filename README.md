@@ -36,6 +36,7 @@ uv sync --all-extras
 | Install deps | `make install` | `uv sync --all-extras` |
 | Run server | `make run` | `uv run uvicorn ai_cicd_demo.main:app --reload` |
 | Run tests | `make test` | `uv run pytest -v` |
+| Run coverage | `make coverage` | `uv run pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-report=html` |
 | Lint code | `make lint` | `uv run ruff check . && uv run mypy src` |
 | Format code | `make format` | `uv run ruff format . && uv run ruff check --fix .` |
 | All checks | `make check` | Runs lint + test |
@@ -82,9 +83,37 @@ ai-cicd-demo/
 
 GitHub Actions runs on push to `main` and on pull requests:
 - `make lint` — ruff + mypy
-- `make test` — pytest
+- `make coverage` — pytest with coverage (fails if below 80%)
+
+Coverage reports (`coverage.xml` and `htmlcov/`) are uploaded as artifacts.
 
 See [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
+## Coverage
+
+CI enforces a minimum **80% code coverage** threshold. Coverage is configured in `pyproject.toml`.
+
+### Running Locally
+
+```bash
+make coverage
+```
+
+This generates:
+- Terminal summary with missing lines
+- `coverage.xml` (Cobertura format)
+- `htmlcov/` folder (open `htmlcov/index.html` in browser)
+
+### Threshold
+
+The 80% threshold is configured in `pyproject.toml` under `[tool.coverage.report]`:
+
+```toml
+[tool.coverage.report]
+fail_under = 80
+```
+
+To adjust, change the `fail_under` value.
 
 ## AI PR Summary
 

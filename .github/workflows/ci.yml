@@ -1,5 +1,5 @@
 # CI workflow for ai-cicd-demo
-# Runs the same checks as local development (make lint, make test)
+# Runs the same checks as local development (make lint, make coverage)
 
 name: CI
 
@@ -71,6 +71,17 @@ jobs:
       - name: Lint
         run: make lint
 
-      # Run tests: pytest
-      - name: Test
-        run: make test
+      # Run tests with coverage (fails if below 80% threshold)
+      - name: Test with coverage
+        run: make coverage
+
+      # Upload coverage reports as artifacts
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: |
+            coverage.xml
+            htmlcov/
+          retention-days: 7

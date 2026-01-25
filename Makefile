@@ -1,4 +1,4 @@
-.PHONY: install run test lint format check
+.PHONY: install run test lint format check coverage
 
 install:
 	uv sync --all-extras
@@ -8,6 +8,9 @@ run:
 
 test:
 	uv run pytest -v
+
+coverage:
+	uv run pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-report=html
 
 lint:
 	uv run ruff check .
