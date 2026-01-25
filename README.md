@@ -60,10 +60,12 @@ ai-cicd-demo/
 ├── tools/
 │   ├── shared.py            # Shared utilities for AI tools
 │   ├── ai_pr_summary.py     # AI PR summary generator
-│   └── ai_test_draft.py     # AI draft test generator
+│   ├── ai_test_draft.py     # AI draft test generator
+│   └── ai_release_notes.py  # AI release notes generator
 └── prompts/
     ├── pr_summary.md        # PR summary prompt template
-    └── test_generation.md   # Test generation prompt template
+    ├── test_generation.md   # Test generation prompt template
+    └── release_notes.md     # Release notes prompt template
 ```
 
 ## API Endpoints
@@ -161,6 +163,48 @@ Security features:
 - Minimal permissions (contents read, pull-requests write)
 
 See [`.github/workflows/ai_test_draft.yml`](.github/workflows/ai_test_draft.yml).
+
+## AI Release Notes
+
+Automatically generates AI-powered release notes when you push a version tag.
+
+**Trigger:** Push a tag matching `v*` (e.g., `v0.1.0`, `v1.0.0-beta`)
+
+**What it does:**
+
+1. Determines the previous tag automatically
+2. Collects commits between tags (with PR titles where available)
+3. Generates grouped release notes using OpenAI:
+   - Features, Fixes, Documentation, Chore/CI, Other
+   - Highlights breaking changes (conventional commits with `!`)
+4. Creates a **draft** GitHub release (review before publishing)
+5. Uploads release notes as an artifact (7-day retention)
+
+**Creating a release:**
+
+```bash
+# Create and push a tag
+git tag v0.1.0
+git push origin v0.1.0
+
+# Or create an annotated tag
+git tag -a v0.1.0 -m "Release v0.1.0"
+git push origin v0.1.0
+```
+
+After the workflow completes, go to GitHub → Releases to review and publish the draft.
+
+**Required Secret:** `OPENAI_API_KEY` (same as other AI tools)
+
+**Idempotent:** Re-running the workflow on the same tag updates the existing draft release.
+
+Security features:
+
+- Potential secrets are redacted before sending to OpenAI
+- Limited to 50 commits per release to control API costs
+- Minimal permissions (contents write for releases only)
+
+See [`.github/workflows/release_notes.yml`](.github/workflows/release_notes.yml).
 
 ## PR Title Convention
 

@@ -61,6 +61,42 @@ def github_request(
     return response.json()
 
 
+def github_request_with_headers(
+    method: str,
+    endpoint: str,
+    github_token: str,
+    json_data: dict[str, Any] | None = None,
+    extra_headers: dict[str, str] | None = None,
+) -> Any:
+    """Make a request to GitHub API with custom headers.
+
+    Allows overriding or adding headers for endpoints that require specific
+    Accept headers (e.g., /commits/{sha}/pulls).
+    """
+    headers = {
+        "Authorization": f"Bearer {github_token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    if extra_headers:
+        headers.update(extra_headers)
+
+    url = f"https://api.github.com{endpoint}"
+
+    response = requests.request(
+        method,
+        url,
+        headers=headers,
+        json=json_data,
+        timeout=30,
+    )
+    response.raise_for_status()
+
+    if response.status_code == 204:
+        return {}
+    return response.json()
+
+
 def fetch_pr_files_paginated(
     repo: str,
     pr_number: str,
