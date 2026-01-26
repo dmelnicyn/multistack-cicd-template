@@ -2,19 +2,22 @@
 
 from __future__ import annotations
 
-from ai_cicd_demo.ai.openai_client import OpenAIError, call_openai
+from ai_cicd_demo.ai.openai_client import call_openai
 
 # Allowed intent labels
 ALLOWED_INTENTS = ["QUESTION", "REQUEST", "COMPLAINT", "OTHER"]
 
 # System prompt for intent classification
-SYSTEM_PROMPT = """You are an intent classifier. Classify the user's message into exactly one of these categories:
+SYSTEM_PROMPT = """\
+You are an intent classifier. Classify the user's message into exactly one \
+of these categories:
 - QUESTION: The user is asking a question or seeking information
 - REQUEST: The user is asking for an action to be performed
 - COMPLAINT: The user is expressing dissatisfaction or a problem
 - OTHER: The message doesn't fit the above categories
 
-Respond with ONLY the category name in uppercase (QUESTION, REQUEST, COMPLAINT, or OTHER).
+Respond with ONLY the category name in uppercase \
+(QUESTION, REQUEST, COMPLAINT, or OTHER).
 Do not include any other text, punctuation, or explanation."""
 
 

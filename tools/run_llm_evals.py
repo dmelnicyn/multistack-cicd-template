@@ -66,7 +66,6 @@ def run_single_test(test_case: dict[str, Any]) -> tuple[bool, str, str | None]:
     Returns:
         Tuple of (passed, actual_intent_or_error, notes)
     """
-    test_id = test_case["id"]
     input_text = test_case["input_text"]
     expected = test_case["expected_intent"]
 
@@ -158,7 +157,7 @@ def main() -> int:
 
     if failed_count > 0:
         print("\nFailed tests:")
-        for test_id, passed, actual, expected, error in results:
+        for test_id, passed, actual, expected, _error in results:
             if not passed:
                 print(f"  - {test_id}: got {actual}, expected {expected}")
         print(f"\n::error::{failed_count} LLM eval(s) failed")

@@ -123,6 +123,10 @@ def classify_intent_endpoint(request: IntentRequest) -> IntentResponse:
         intent = classify_intent(request.text)
         return IntentResponse(intent=intent)
     except OpenAIError as e:
-        raise HTTPException(status_code=503, detail=f"AI service unavailable: {e}")
+        raise HTTPException(
+            status_code=503, detail=f"AI service unavailable: {e}"
+        ) from e
     except ValueError as e:
-        raise HTTPException(status_code=500, detail=f"Classification error: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Classification error: {e}"
+        ) from e
