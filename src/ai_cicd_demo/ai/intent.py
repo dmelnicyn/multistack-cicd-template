@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+from typing import Literal, cast, get_args
+
 from ai_cicd_demo.ai.openai_client import call_openai
 
-# Allowed intent labels
-ALLOWED_INTENTS = ["QUESTION", "REQUEST", "COMPLAINT", "OTHER"]
+# Type alias for allowed intents
+IntentType = Literal["QUESTION", "REQUEST", "COMPLAINT", "OTHER"]
+
+# Allowed intent labels (derived from type for consistency)
+ALLOWED_INTENTS: tuple[str, ...] = get_args(IntentType)
 
 # System prompt for intent classification
 SYSTEM_PROMPT = """\
@@ -21,7 +26,7 @@ Respond with ONLY the category name in uppercase \
 Do not include any other text, punctuation, or explanation."""
 
 
-def classify_intent(text: str) -> str:
+def classify_intent(text: str) -> IntentType:
     """Classify the intent of a text message.
 
     Args:
@@ -55,4 +60,5 @@ def classify_intent(text: str) -> str:
             f"Expected one of: {ALLOWED_INTENTS}"
         )
 
-    return intent
+    # Cast is safe here because we validated intent is in ALLOWED_INTENTS
+    return cast(IntentType, intent)
