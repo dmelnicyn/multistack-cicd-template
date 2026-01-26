@@ -13,6 +13,7 @@ from typing import Any
 import requests
 from openai import OpenAI
 from shared import (
+    check_openai_key,
     get_env_or_exit,
     github_request,
     github_request_with_headers,
@@ -293,8 +294,12 @@ def save_release_notes(content: str) -> None:
 
 def main() -> None:
     """Main entry point."""
+    # Check for OpenAI key first (graceful skip if missing)
+    openai_key = check_openai_key()
+    if not openai_key:
+        return
+
     # Get required environment variables
-    openai_key = get_env_or_exit("OPENAI_API_KEY")
     github_token = get_env_or_exit("GITHUB_TOKEN")
     repo = get_env_or_exit("REPO")
     tag = get_env_or_exit("TAG")

@@ -12,11 +12,17 @@ on:
 permissions:
   contents: read
 
+# Prevent concurrent runs on the same branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # Validate PR title follows Conventional Commits format
   ci-pr-title:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Validate PR title
         env:
@@ -46,6 +52,7 @@ jobs:
 
   ci-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       # Checkout the repository
       - uses: actions/checkout@v4

@@ -8,10 +8,20 @@ on:
 permissions:
   contents: read
 
+# Prevent concurrent runs on the same branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   llm-evals:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
+      - name: Mask secrets
+        if: ${{ secrets.OPENAI_API_KEY != '' }}
+        run: echo "::add-mask::${{ secrets.OPENAI_API_KEY }}"
+
       - name: Checkout code
         uses: actions/checkout@v4
 

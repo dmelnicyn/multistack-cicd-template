@@ -205,7 +205,14 @@ def redact_secrets(content: str) -> str:
         redacted,
     )
 
-    # Pattern 9: PEM private key blocks
+    # Pattern 9: OpenSSH private key blocks (must come before generic PEM pattern)
+    redacted = re.sub(
+        r"-----BEGIN OPENSSH PRIVATE KEY-----[\s\S]*?-----END OPENSSH PRIVATE KEY-----",
+        "[REDACTED_OPENSSH_KEY]",
+        redacted,
+    )
+
+    # Pattern 10: PEM private key blocks (RSA, EC, generic)
     redacted = re.sub(
         r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----",
         "[REDACTED_PEM_KEY]",
