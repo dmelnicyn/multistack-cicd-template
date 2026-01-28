@@ -1,0 +1,43 @@
+name: Staging Smoke Check
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: staging-smoke-check
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-check:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check STAGING_URL is set
+        id: check-url
+        run: |
+          if [ -z "${{ vars.STAGING_URL }}" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "::notice::STAGING_URL not configured, skipping smoke check"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Wait for deployment
+        if: steps.check-url.outputs.skip != 'true'
+        run: sleep 60
+
+      - name: Health check
+        if: steps.check-url.outputs.skip != 'true'
+        run: |
+          response=$(curl -sf --max-time 30 "${{ vars.STAGING_URL }}/health")
+          echo "Response: $response"
+          echo "$response" | grep -q '"status"' || { echo "Missing status field"; exit 1; }
+          echo "$response" | grep -q '"ok"' || { echo "Status not ok"; exit 1; }
+          echo "Staging health check passed"

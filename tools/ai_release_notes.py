@@ -24,6 +24,16 @@ from shared import (
 OPENAI_MODEL = "gpt-4o-mini"
 MAX_COMMITS = 50  # Cap to limit API calls
 
+# Deployment reminder appended to release notes
+DEPLOYMENT_REMINDER = """
+---
+
+## Production Deployment
+
+This release is deployed to **staging** automatically.
+To promote to production, follow the [deployment runbook](docs/runbook-deploy.md).
+"""
+
 
 def get_tags(repo: str, github_token: str) -> list[dict[str, Any]]:
     """Fetch all tags from repository."""
@@ -342,6 +352,9 @@ def main() -> None:
     # Call OpenAI
     print("Calling OpenAI API...")
     release_notes = call_openai(prompt, openai_key)
+
+    # Append deployment reminder
+    release_notes = release_notes.rstrip() + DEPLOYMENT_REMINDER
 
     # Create or update release
     create_or_update_release(repo, tag, release_notes, github_token)
