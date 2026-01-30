@@ -1,0 +1,82 @@
+# Tooling matrix mapping stacks to CI commands
+# Edit this file to customize commands for your project
+
+stacks:
+  python:
+    markers: ["pyproject.toml", "setup.py", "requirements.txt"]
+    setup_action: "actions/setup-python"
+    default_version: "3.11"
+    commands:
+      install: "pip install -e '.[dev]'"
+      lint: "ruff check . && mypy src"
+      test: "pytest -v"
+      coverage: "pytest --cov=src --cov-report=xml"
+      typecheck: "mypy src"
+      build: "pip wheel . -w dist"
+      scan: "pip-audit"
+
+  python-uv:
+    markers: ["uv.lock"]
+    setup_action: "astral-sh/setup-uv"
+    default_version: "3.11"
+    commands:
+      install: "uv sync --all-extras"
+      lint: "uv run ruff check . && uv run mypy src"
+      test: "uv run pytest -v"
+      coverage: "uv run pytest --cov=src --cov-report=xml"
+      typecheck: "uv run mypy src"
+      build: "uv build"
+      scan: "uv run pip-audit"
+
+  node:
+    markers: ["package.json"]
+    setup_action: "actions/setup-node"
+    default_version: "20"
+    commands:
+      install: "npm ci"
+      lint: "npm run lint"
+      test: "npm test"
+      coverage: "npm run test:coverage"
+      typecheck: "npm run typecheck"
+      build: "npm run build"
+      scan: "npm audit --audit-level=moderate"
+
+  go:
+    markers: ["go.mod"]
+    setup_action: "actions/setup-go"
+    default_version: "1.22"
+    commands:
+      install: "go mod download"
+      lint: "golangci-lint run"
+      test: "go test -v ./..."
+      coverage: "go test -coverprofile=coverage.out ./..."
+      typecheck: ""  # Go has built-in type checking
+      build: "go build ./..."
+      scan: "govulncheck ./..."
+
+  java:
+    markers: ["pom.xml", "build.gradle"]
+    setup_action: "actions/setup-java"
+    default_version: "21"
+    commands:
+      install: "mvn dependency:resolve"
+      lint: "mvn checkstyle:check"
+      test: "mvn test"
+      coverage: "mvn test jacoco:report"
+      typecheck: ""  # Java has built-in type checking
+      build: "mvn package -DskipTests"
+      scan: "mvn org.owasp:dependency-check-maven:check"
+
+  # Pre-activation state - no stack decided yet
+  none:
+    markers: []
+    setup_action: "none"
+    default_version: ""
+    commands:
+      install: ""
+      lint: ""
+      test: ""
+      coverage: ""
+      typecheck: ""
+      build: ""
+      scan: ""
