@@ -1,0 +1,173 @@
+# Reusable CI workflow for multi-stack projects
+# Called by ci.yml with stack-specific parameters
+
+name: Reusable CI
+
+on:
+  workflow_call:
+    inputs:
+      stack:
+        description: "Stack name (python, python-uv, node, go, java)"
+        required: true
+        type: string
+      setup_action:
+        description: "Setup action to use (e.g., actions/setup-python)"
+        required: true
+        type: string
+      setup_version:
+        description: "Version for setup action (e.g., 3.11, 20, 1.22)"
+        required: false
+        type: string
+        default: ""
+      install_cmd:
+        description: "Command to install dependencies"
+        required: true
+        type: string
+      lint_cmd:
+        description: "Command to run linting"
+        required: false
+        type: string
+        default: ""
+      test_cmd:
+        description: "Command to run tests"
+        required: true
+        type: string
+      coverage_cmd:
+        description: "Command to run coverage"
+        required: false
+        type: string
+        default: ""
+      typecheck_cmd:
+        description: "Command to run type checking"
+        required: false
+        type: string
+        default: ""
+      build_cmd:
+        description: "Command to build the project"
+        required: false
+        type: string
+        default: ""
+      scan_cmd:
+        description: "Command to run security scanning"
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  ci-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # ============================================
+      # Python with uv setup
+      # ============================================
+      - name: Setup Python (for uv)
+        if: inputs.setup_action == 'astral-sh/setup-uv'
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ inputs.setup_version || '3.11' }}
+
+      - name: Setup uv
+        if: inputs.setup_action == 'astral-sh/setup-uv'
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      # ============================================
+      # Python (pip) setup
+      # ============================================
+      - name: Setup Python
+        if: inputs.setup_action == 'actions/setup-python'
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ inputs.setup_version || '3.11' }}
+          cache: 'pip'
+
+      # ============================================
+      # Node.js setup
+      # ============================================
+      - name: Setup Node.js
+        if: inputs.setup_action == 'actions/setup-node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.setup_version || '20' }}
+          cache: 'npm'
+
+      # ============================================
+      # Go setup
+      # ============================================
+      - name: Setup Go
+        if: inputs.setup_action == 'actions/setup-go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.setup_version || '1.22' }}
+
+      - name: Install golangci-lint
+        if: inputs.setup_action == 'actions/setup-go'
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.61.0
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Install govulncheck
+        if: inputs.setup_action == 'actions/setup-go'
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      # ============================================
+      # Java setup
+      # ============================================
+      - name: Setup Java
+        if: inputs.setup_action == 'actions/setup-java'
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.setup_version || '21' }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      # ============================================
+      # CI Steps
+      # ============================================
+      - name: Install dependencies
+        run: ${{ inputs.install_cmd }}
+
+      - name: Lint
+        if: inputs.lint_cmd != ''
+        run: ${{ inputs.lint_cmd }}
+
+      - name: Type check
+        if: inputs.typecheck_cmd != ''
+        run: ${{ inputs.typecheck_cmd }}
+
+      - name: Test
+        run: ${{ inputs.test_cmd }}
+
+      - name: Coverage
+        if: inputs.coverage_cmd != ''
+        run: ${{ inputs.coverage_cmd }}
+
+      - name: Build
+        if: inputs.build_cmd != ''
+        run: ${{ inputs.build_cmd }}
+
+      - name: Security scan
+        if: inputs.scan_cmd != ''
+        run: ${{ inputs.scan_cmd }}
+        continue-on-error: true
+
+      # ============================================
+      # Artifacts
+      # ============================================
+      - name: Upload coverage reports
+        if: inputs.coverage_cmd != '' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            coverage.xml
+            coverage.out
+            htmlcov/
+            target/site/jacoco/
+          retention-days: 7
+          if-no-files-found: ignore
