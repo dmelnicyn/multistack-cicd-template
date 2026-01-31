@@ -86,7 +86,7 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: uv run python tools/ai_release_notes.py
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: release-notes
           path: artifacts/release_notes.md
