@@ -87,7 +87,7 @@ jobs:
           REPO: ${{ github.repository }}
 
       - name: Upload draft tests artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: draft-tests
           path: artifacts/draft_tests.md
