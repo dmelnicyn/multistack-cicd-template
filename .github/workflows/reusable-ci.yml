@@ -101,7 +101,7 @@ jobs:
       # ============================================
       - name: Setup Go
         if: inputs.setup_action == 'actions/setup-go'
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ inputs.setup_version || '1.22' }}
 
